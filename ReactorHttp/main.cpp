@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
 {
 #if 1
 	if (argc < 3) {
-		printf("./a.out port path\n");)
+		printf("./a.out port path\n");
 		return -1;
 	}
 	unsigned short port = atoi(argv[1]);
