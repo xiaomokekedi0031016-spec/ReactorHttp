@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "TcpServer.h"
 
 //argc表示命令行参数的个数
 //argv表示命令行参数的数组
@@ -20,6 +21,8 @@ int main(int argc, char* argv[])
 	chdir("/home/wz/luffy");
 #endif
 	//启动服务器
+	TcpServer* server = new TcpServer(port, 4);
+	server->run();
 
 	return 0;
 }
