@@ -1,4 +1,4 @@
-#include "Buffer.h"
+ï»¿#include "Buffer.h"
 #include <string.h>
 #include <strings.h>
 #include <sys/uio.h>
@@ -21,7 +21,7 @@ Buffer::~Buffer() {
 }
 
 void Buffer::extendRoom(int size) {
-	//ÄÚ´æ¹»ÓÃ-²»ĞèÒªÀ©Èİ
+	//å†…å­˜å¤Ÿç”¨-ä¸éœ€è¦æ‰©å®¹
 	if(writeableSize() >= size) {
 		return;
 	}
@@ -34,10 +34,10 @@ void Buffer::extendRoom(int size) {
 	else {
 		void* temp = realloc(m_data, m_capacity + size);
 		if (temp == NULL) {
-			return;//Ê§°ÜÁË
+			return;//å¤±è´¥äº†
 		}
 		memset((char*)temp + m_capacity, 0, size);
-		//¸üĞÂÊı¾İ
+		//æ›´æ–°æ•°æ®
 		m_data = static_cast<char*>(temp);
 		m_capacity += size;	
 	}
@@ -47,7 +47,7 @@ int Buffer::appendString(const char* data, int size) {
 	if(data == nullptr || size <= 0) {
 		return -1;
 	}
-	//À©Èİ
+	//æ‰©å®¹
 	extendRoom(size);
 	memcpy(m_data + m_writePos, data, size);
 	m_writePos += size;
@@ -68,13 +68,13 @@ int Buffer::appendString(const std::string data) {
 int Buffer::socketRead(int fd) {
 	//readv
 	struct iovec vec[2];	
-	int writeable = writeableSize();//Ê£Óà¿ÉĞ´µÄ»º³åÇø´óĞ¡
-	vec[0].iov_base = m_data + m_writePos;//»º³åÇø¿ÉĞ´Î»ÖÃ
+	int writeable = writeableSize();//å‰©ä½™å¯å†™çš„ç¼“å†²åŒºå¤§å°
+	vec[0].iov_base = m_data + m_writePos;//ç¼“å†²åŒºå¯å†™ä½ç½®
 	vec[0].iov_len = writeable;
-	char* tmpbuf = (char*)malloc(65536);//ÁÙÊ±»º³åÇø·ÅµÄÊÇ¶Áµ½µÄÊı¾İ
+	char* tmpbuf = (char*)malloc(65536);//ä¸´æ—¶ç¼“å†²åŒºæ”¾çš„æ˜¯è¯»åˆ°çš„æ•°æ®
 	vec[1].iov_base = tmpbuf;
 	vec[1].iov_len = 40960;
-	//readv·µ»ØµÄÊµ¼Ê¶Áµ½µÄ×Ö½ÚÊı
+	//readvè¿”å›çš„å®é™…è¯»åˆ°çš„å­—èŠ‚æ•°
 	int result = readv(fd, vec, 2);
 	if (result == -1) {
 		return -1;
@@ -93,19 +93,23 @@ int Buffer::socketRead(int fd) {
 int Buffer::sendData(int socket){
 	int readable = readableSize();
 	if (readable > 0) {
-		//·¢ËÍ¿É¶ÁµÄÊı¾İ
+		//å‘é€å¯è¯»çš„æ•°æ®
 		int count = send(socket, m_data + m_readPos, readable, MSG_NOSIGNAL);
 		if (count > 0)
 		{
 			m_readPos += count;
-			usleep(1);//£¿£¿£¿
+			usleep(1);//ï¼Ÿï¼Ÿï¼Ÿ
 		}
 		return count;
 	}
 	return 0;
 }
 
-
+char* Buffer::findCRLF() {
+	//memmemä»å¤§å—å†…å­˜ä¸­æŸ¥æ‰¾å°å—å†…å­˜
+	char* ptr = (char*)memmem(m_data + m_readPos, readableSize(), "\r\n", 2);
+	return ptr;
+}
 
 
 

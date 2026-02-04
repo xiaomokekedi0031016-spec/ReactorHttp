@@ -1,10 +1,11 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "TcpServer.h"
+#include "Log.h"
 
-//argc±íÊ¾ÃüÁîÐÐ²ÎÊýµÄ¸öÊý
-//argv±íÊ¾ÃüÁîÐÐ²ÎÊýµÄÊý×é
+//argcè¡¨ç¤ºå‘½ä»¤è¡Œå‚æ•°çš„ä¸ªæ•°
+//argvè¡¨ç¤ºå‘½ä»¤è¡Œå‚æ•°çš„æ•°ç»„
 int main(int argc, char* argv[])
 {
 #if 1
@@ -13,14 +14,15 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 	unsigned short port = atoi(argv[1]);
-	//ÇÐ»»·þÎñÆ÷µÄ¹¤×÷Â·¾¶
+	//åˆ‡æ¢æœåŠ¡å™¨çš„å·¥ä½œè·¯å¾„
 	chdir(argv[2]);
 
 #else
 	usigned short port = 10000;
 	chdir("/home/wz/luffy");
 #endif
-	//Æô¶¯·þÎñÆ÷
+	//å¯åŠ¨æœåŠ¡å™¨
+	//Debug("main....");
 	TcpServer* server = new TcpServer(port, 4);
 	server->run();
 

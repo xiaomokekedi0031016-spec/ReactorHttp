@@ -7,11 +7,13 @@
 EpollDispatcher::EpollDispatcher(EventLoop* evloop) 
 	:Dispatcher(evloop)
 {
-	m_epfd = epoll_create(10);// ²ÎÊıËæÒâ, Ö»Òª´óÓÚ0
+	m_epfd = epoll_create(10);// å‚æ•°éšæ„, åªè¦å¤§äº0
 	if (m_epfd == -1) {
 		perror("epoll_create");
 		exit(0);
 	}
+
+	m_events = new struct epoll_event[m_maxNode];
 
 	m_name = "Epoll";
 }
@@ -49,7 +51,7 @@ int EpollDispatcher::modify() {
 	return ret;
 }
 
-int EpollDispatcher::dispatch(int timeout)// µ¥Î»: s
+int EpollDispatcher::dispatch(int timeout)// å•ä½: s
 {
 	int count = epoll_wait(m_epfd, m_events, m_maxNode, timeout * 1000);
 	for (int i = 0; i < count; ++i) {
@@ -71,18 +73,18 @@ int EpollDispatcher::dispatch(int timeout)// µ¥Î»: s
 }
 
 int EpollDispatcher::epollCtl(int op) {
-	//epoll_event½á¹¹Ìå±äÁ¿£¬ÓÃÓÚ×¢²áÊÂ¼şµ½epollÊµÀıÖĞ
+	//epoll_eventç»“æ„ä½“å˜é‡ï¼Œç”¨äºæ³¨å†Œäº‹ä»¶åˆ°epollå®ä¾‹ä¸­
 	struct epoll_event ev;
 	ev.data.fd = m_channel->getSocket();
 	int events = 0;
-	if(m_channel->getEvent() & (int)FDEvent::ReadEvent) {//Óë
+	if(m_channel->getEvent() & (int)FDEvent::ReadEvent) {//ä¸
 		events |= EPOLLIN;
 	}
 	if(m_channel->getEvent() & (int)FDEvent::WriteEvent) {
 		events |= EPOLLOUT;
 	}
 	ev.events = events;
-	//½«ĞèÒª¼àÌıµÄÎÄ¼şÃèÊö·ûÌí¼Óµ½epollÊµÀıÖĞ
+	//å°†éœ€è¦ç›‘å¬çš„æ–‡ä»¶æè¿°ç¬¦æ·»åŠ åˆ°epollå®ä¾‹ä¸­
 	int ret = epoll_ctl(m_epfd, op, m_channel->getSocket(), &ev);
 	
 	return ret;

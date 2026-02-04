@@ -1,4 +1,4 @@
-#include "EventLoop.h"
+ï»¿#include "EventLoop.h"
 #include <string>
 #include "EpollDispatcher.h"
 #include <sys/socket.h>
@@ -10,12 +10,12 @@ EventLoop::EventLoop()
 	:EventLoop(std::string()){}
 
 EventLoop::EventLoop(const std::string threadName) {
-	m_isQuit = true;//Ä¬ÈÏÃ»ÓÐÆô¶¯£¬Æô¶¯¼´Ñ­»·½øÐÐÊÂ¼þ´¦Àí
+	m_isQuit = true;//é»˜è®¤æ²¡æœ‰å¯åŠ¨ï¼Œå¯åŠ¨å³å¾ªçŽ¯è¿›è¡Œäº‹ä»¶å¤„ç†
 	m_threadID = std::this_thread::get_id();
 	m_threadName = threadName == std::string() ? "MainThread" : threadName;
 	m_dispatcher = new EpollDispatcher(this);
 	m_channelMap.clear();
-	//´´½¨±¾µØÌ×½Ó×Ö
+	//åˆ›å»ºæœ¬åœ°å¥—æŽ¥å­—
 	int ret = socketpair(AF_UNIX, SOCK_STREAM, 0, m_socketPair);
 	if (ret == -1) {
 		perror("socketpair");
@@ -45,8 +45,9 @@ int EventLoop::run() {
 		return -1;
 	}
 	while (!m_isQuit) {
-		m_dispatcher->dispatch();//³¬Ê±Ê±³¤2s
+		m_dispatcher->dispatch();//è¶…æ—¶æ—¶é•¿2s
 		//...todo
+		processTaskQ();
 	}
 
 	return 0;
@@ -75,34 +76,37 @@ int EventLoop::addTask(Channel* channel, ElemType type) {
 	node->type = type;
 	m_taskQ.push(node);
 	m_mutex.unlock();
-	//´¦Àí½Úµã
+	//å¤„ç†èŠ‚ç‚¹
 	if(m_threadID == std::this_thread::get_id()) {
-		//Èç¹ûÊÇ×ÓÏß³Ì´¦ÀíÈÎÎñ¶ÓÁÐ
-		//ÕâÀïÒ²¿ÉÄÜÊÇÖ÷Ïß³Ì·¢ÆðµÄÌí¼Ó¼àÌýlfd
+		//å¦‚æžœæ˜¯å­çº¿ç¨‹å¤„ç†ä»»åŠ¡é˜Ÿåˆ—
+		//è¿™é‡Œä¹Ÿå¯èƒ½æ˜¯ä¸»çº¿ç¨‹å‘èµ·çš„æ·»åŠ ç›‘å¬lfd
 		processTaskQ();
 	} else {
-		//ÕâÀïÒ»¶¨ÊÇÖ÷Ïß³Ì >> µÚÒ»´Înew connectionµÄÊ±ºò»á×ßµ½ÕâÀï, ËùÓÐ²»»á³öÏÖÍ¨ÐÅ×Ô¼ºµÄ±¾µØÌ×½Ó×ÖÇé¿ö
+		//è¿™é‡Œä¸€å®šæ˜¯ä¸»çº¿ç¨‹ >> ç¬¬ä¸€æ¬¡new connectionçš„æ—¶å€™ä¼šèµ°åˆ°è¿™é‡Œ, æ‰€æœ‰ä¸ä¼šå‡ºçŽ°é€šä¿¡è‡ªå·±çš„æœ¬åœ°å¥—æŽ¥å­—æƒ…å†µ
 		taskWakeup();
 	}
+	return 0;
 }
 
 int EventLoop::processTaskQ() {
 	while (!m_taskQ.empty()) {
 		m_mutex.lock();
+		ChannelElement* node = m_taskQ.front();
+		m_taskQ.pop();
+		m_mutex.unlock();
+		Channel* channel = node->channel;
+		if (node->type == ElemType::ADD) {
+			add(channel);
+		}
+		else if (node->type == ElemType::DELETE) {
+			remove(channel);
+		}
+		else if (node->type == ElemType::MODIFY) {
+			modify(channel);
+		}
+		delete node;
 	}
-	ChannelElement* node = m_taskQ.front();
-	m_taskQ.pop();
-	m_mutex.unlock();
-	Channel* channel = node->channel;
-	if (node->type == ElemType::ADD) {
-		add(channel);
-	}
-	else if (node->type == ElemType::DELETE) {
-		delete(channel);
-	}
-	else if(node->type == ElemType::MODIFY){
-		modify(channel);
-	}
+	return 0;
 }
 
 int EventLoop::add(Channel* channel) {
@@ -110,6 +114,7 @@ int EventLoop::add(Channel* channel) {
 	if(m_channelMap.find(fd) == m_channelMap.end()) {
 		m_channelMap.insert(std::make_pair(fd, channel));
 		//todo...
+		m_dispatcher->setChannel(channel);
 		int ret = m_dispatcher->add();
 		return ret;
 	}
@@ -122,6 +127,7 @@ int EventLoop::modify(Channel* channel) {
 		return -1;
 	}
 	//todo...
+	m_dispatcher->setChannel(channel);
 	int ret = m_dispatcher->modify();
 	return ret;
 }
@@ -132,6 +138,7 @@ int EventLoop::remove(Channel* channel) {
 		return -1;
 	}
 	//todo...
+	m_dispatcher->setChannel(channel);
 	int ret = m_dispatcher->remove();	
 	return ret;
 }

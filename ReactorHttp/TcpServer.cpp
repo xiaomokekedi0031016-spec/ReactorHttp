@@ -4,6 +4,7 @@
 #include "TcpConnection.h"
 
 TcpServer::TcpServer(unsigned short port, int threadNum) {
+	//Debug("TcpServer::TcpServer()....");
 	m_port = port;
 	m_mainLoop = new EventLoop;
 	m_threadNum = threadNum;
@@ -11,7 +12,7 @@ TcpServer::TcpServer(unsigned short port, int threadNum) {
 	setListen();
 }
 
-//³õÊ¼»¯¼àÌı
+//åˆå§‹åŒ–ç›‘å¬
 void TcpServer::setListen() {
 	m_lfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_lfd == -1)
@@ -25,9 +26,9 @@ void TcpServer::setListen() {
 		perror("setsockopt");
 		return;
 	}
-	struct sockaddr_in addr;//ipv4×¨ÓÃµØÖ·½á¹¹Ìå
+	struct sockaddr_in addr;//ipv4ä¸“ç”¨åœ°å€ç»“æ„ä½“
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(m_port);//×ª»¯ÎªÍøÂç×Ö½ÚĞò
+	addr.sin_port = htons(m_port);//è½¬åŒ–ä¸ºç½‘ç»œå­—èŠ‚åº
 	addr.sin_addr.s_addr = INADDR_ANY;
 	ret = bind(m_lfd, (struct sockaddr*)&addr, sizeof addr);
 	if (ret == -1)
@@ -44,23 +45,27 @@ void TcpServer::setListen() {
 }
 
 int TcpServer::acceptConnection(void* arg) {
+	//Debug("11111111111111111");
 	TcpServer* server = static_cast<TcpServer*>(arg);
-	// ºÍ¿Í»§¶Ë½¨Á¢Á¬½Ó
+	// å’Œå®¢æˆ·ç«¯å»ºç«‹è¿æ¥
 	int cfd = accept(server->m_lfd, NULL, NULL);
-	// ´ÓÏß³Ì³ØÖĞÈ¡³öÒ»¸ö×ÓÏß³ÌµÄ·´Ó¦¶ÑÊµÀı, È¥´¦ÀíÕâ¸öcfd
+	// ä»çº¿ç¨‹æ± ä¸­å–å‡ºä¸€ä¸ªå­çº¿ç¨‹çš„ååº”å †å®ä¾‹, å»å¤„ç†è¿™ä¸ªcfd
 	EventLoop* evLoop = server->m_threadPool->takeWorkerEventLoop();
-	// ½«cfd·Åµ½ TcpConnectionÖĞ´¦Àí
+	// å°†cfdæ”¾åˆ° TcpConnectionä¸­å¤„ç†
 	new TcpConnection(cfd, evLoop);
 	return 0;
 }
 
-//Æô¶¯·şÎñÆ÷
+//å¯åŠ¨æœåŠ¡å™¨
 void TcpServer::run() {
 	//todo..
+	Debug("æœåŠ¡å™¨ç¨‹åºå·²ç»å¯åŠ¨äº†...");
+	//å¯åŠ¨çº¿ç¨‹æ± 
+	m_threadPool->run();
 	Channel* channel = new Channel(m_lfd, FDEvent::ReadEvent, acceptConnection, nullptr, nullptr, this);
 	m_mainLoop->addTask(channel, ElemType::ADD);
-	// Æô¶¯Ö÷Ïß³ÌµÄ·´Ó¦¶ÑÄ£ĞÍ
+	// å¯åŠ¨ä¸»çº¿ç¨‹çš„ååº”å †æ¨¡å‹
 	m_mainLoop->run();
-	m_threadPool->run();
+
 }
 

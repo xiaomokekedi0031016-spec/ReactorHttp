@@ -1,22 +1,23 @@
-#pragma once
+ï»¿#pragma once
 #include "EventLoop.h"
 #include <vector>
-#include "WorkerThread.h"								
+#include "WorkerThread.h"		
+#include <stdbool.h>
 
 class ThreadPool
 {
 public:
 	ThreadPool(EventLoop* mainLoop, int count);
 	~ThreadPool();
-	//Æô¶¯Ïß³Ì³Ø
+	//å¯åŠ¨çº¿ç¨‹æ± 
 	void run();
-	//È¡³öÏß³Ì³ØÖĞµÄÄ³¸ö×ÓÏß³ÌµÄ·´Ó¦¶ÑÊµÀı
+	//å–å‡ºçº¿ç¨‹æ± ä¸­çš„æŸä¸ªå­çº¿ç¨‹çš„ååº”å †å®ä¾‹
 	EventLoop* takeWorkerEventLoop();
 
 private:
-	EventLoop* m_mainLoop;//Ö÷·´Ó¦¶Ñ
-	bool m_isStart;//Ïß³Ì³ØÊÇ·ñÆô¶¯
-	int m_threadNum;//Ïß³ÌÊıÁ¿
-	std::vector<WorkerThread*> m_workerThreads;//¹¤×÷Ïß³ÌÊı×é
-	int m_index;//ÂÖÑ¯Ë÷Òı >> È¡×ÓÏß³Ì·´Ó¦¶Ñ
+	EventLoop* m_mainLoop;//ä¸»ååº”å †
+	bool m_isStart;//çº¿ç¨‹æ± æ˜¯å¦å¯åŠ¨
+	int m_threadNum;//çº¿ç¨‹æ•°é‡
+	std::vector<WorkerThread*> m_workerThreads;//å·¥ä½œçº¿ç¨‹æ•°ç»„
+	int m_index;//è½®è¯¢ç´¢å¼• >> å–å­çº¿ç¨‹ååº”å †
 };

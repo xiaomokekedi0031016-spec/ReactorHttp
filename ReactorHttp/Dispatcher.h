@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "EventLoop.h"
 #include "Channel.h"
 #include <string>
@@ -11,11 +11,15 @@ public:
 	virtual int add();
 	virtual int remove();
 	virtual int modify();
-	virtual int dispatch(int timeout = 2); // µ¥Î»: s
+	virtual int dispatch(int timeout = 2); // å•ä½: s
+	inline void setChannel(Channel* channel)
+	{
+		m_channel = channel;
+	}
 
 
 protected:
-	EventLoop* m_evLoop;//·´Ó¦¶Ñ
-	Channel* m_channel;//Í¨µÀ
+	EventLoop* m_evLoop;//ååº”å †
+	Channel* m_channel;//é€šé“
 	std::string m_name = std::string();
 };

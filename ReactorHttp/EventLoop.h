@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <thread>
 #include <map>
 #include "Dispatcher.h"
@@ -6,12 +6,12 @@
 #include <queue>
 #include "Channel.h"
 
-//´¦Àí½ÚµãµÄ·½Ê½
+//å¤„ç†èŠ‚ç‚¹çš„æ–¹å¼
 enum class ElemType : char { ADD, DELETE, MODIFY };
 
-//ÈÎÎñ¶ÓÁĞµÄ½Úµã
+//ä»»åŠ¡é˜Ÿåˆ—çš„èŠ‚ç‚¹
 struct ChannelElement {
-	ElemType type;//´¦Àí½ÚµãµÄ·½Ê½
+	ElemType type;//å¤„ç†èŠ‚ç‚¹çš„æ–¹å¼
 	Channel* channel;
 };
 
@@ -21,40 +21,44 @@ public:
 	EventLoop();
 	EventLoop(const std::string threadName);
 	~EventLoop();
-	//Æô¶¯·´Ó¦¶ÑÄ£ĞÍ
+	//å¯åŠ¨ååº”å †æ¨¡å‹
 	int run();
-	//´¦Àí±»¼¤»îµÄÎÄ¼şfd
+	//å¤„ç†è¢«æ¿€æ´»çš„æ–‡ä»¶fd
 	int eventActive(int fd, int event);
-	//Ìí¼ÓÈÎÎñµ½ÈÎÎñ¶ÓÁĞÖĞ
+	//æ·»åŠ ä»»åŠ¡åˆ°ä»»åŠ¡é˜Ÿåˆ—ä¸­
 	int addTask(Channel* channel, ElemType type);
-	//´¦ÀíÈÎÎñ¶ÓÁĞÖĞµÄÈÎÎñ
+	//å¤„ç†ä»»åŠ¡é˜Ÿåˆ—ä¸­çš„ä»»åŠ¡
 	int processTaskQ();
-	//´¦ÀídispatcherÖĞµÄ½Úµã
+	//å¤„ç†dispatcherä¸­çš„èŠ‚ç‚¹
 	int add(Channel* channel);
 	int modify(Channel* channel);
 	int remove(Channel* channel);
-	//»½ĞÑ×ÓÏß³Ìºó,×ÓÏß³Ì·´Ó¦¶ÑÖ´ĞĞµÄ±¾µØÌ×½Ó×ÖÍ¨ĞÅ
+	//å”¤é†’å­çº¿ç¨‹å,å­çº¿ç¨‹ååº”å †æ‰§è¡Œçš„æœ¬åœ°å¥—æ¥å­—é€šä¿¡
 	int readMessage();
-	//ÊÍ·Åchannel
+	//é‡Šæ”¾channel
 	int freeChannel(Channel* channel);	
 	inline std::thread::id getThreadID() {
 		return m_threadID;
 	}
+	//inline std::string getThreadName()
+	//{
+	//	return m_threadName;
+	//}
 
-	////¾²Ì¬³ÉÔ±º¯ÊıÊÇ²»ÒÀÀµ¶ÔÏó,ÅäºÏthis»Ø´«Ê¹ÓÃ
+	////é™æ€æˆå‘˜å‡½æ•°æ˜¯ä¸ä¾èµ–å¯¹è±¡,é…åˆthiså›ä¼ ä½¿ç”¨
 	//static int readLocalMessage(void* arg);
 
 private:
-	//»½ĞÑ×ÓÏß³Ì
+	//å”¤é†’å­çº¿ç¨‹
 	void taskWakeup();
 
 private:
-	bool m_isQuit;//·´Ó¦¶Ñ¿ª¹Ø
-	std::thread::id m_threadID;//Ïß³ÌID
-	std::string m_threadName;//µ±Ç°Ïß³ÌÃû³Æ(Çø·ÖÖ÷Ïß³ÌºÍ¹¤×÷Ïß³Ì)
-	Dispatcher* m_dispatcher;//ÅÉ·¢Æ÷Ö¸Õë
-	std::map<int, Channel*> m_channelMap;//Í¨µÀÓ³Éä±í
+	bool m_isQuit;//ååº”å †å¼€å…³
+	std::thread::id m_threadID;//çº¿ç¨‹ID
+	std::string m_threadName;//å½“å‰çº¿ç¨‹åç§°(åŒºåˆ†ä¸»çº¿ç¨‹å’Œå·¥ä½œçº¿ç¨‹)
+	Dispatcher* m_dispatcher;//æ´¾å‘å™¨æŒ‡é’ˆ
+	std::map<int, Channel*> m_channelMap;//é€šé“æ˜ å°„è¡¨
 	std::mutex m_mutex;
-	int m_socketPair[2];//±¾µØÍ¨ĞÅsocketpair
+	int m_socketPair[2];//æœ¬åœ°é€šä¿¡socketpair
 	std::queue<ChannelElement*> m_taskQ;
 };
