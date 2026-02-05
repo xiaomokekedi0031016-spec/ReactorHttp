@@ -9,8 +9,11 @@ int TcpConnection::processRead(void* arg) {
 	Debug("接收到的http请求数据: %s", conn->m_readBuf->data());
 	if (count > 0) {
 		//接收到了http请求,解析http请求
+		//下面两句是线程处理读事件执行的，但是并不会马上去执行写事件，因此放在这里和放在最后面效果一样
+#ifdef MSG_SEND_AUTO
 		conn->m_channel->writeEventEnable(true);
 		conn->m_evLoop->addTask(conn->m_channel, ElemType::MODIFY);
+#endif
 		bool flag = conn->m_request->parseHttpRequest(
 			conn->m_readBuf, conn->m_response,
 			conn->m_writeBuf, socket);
@@ -21,9 +24,15 @@ int TcpConnection::processRead(void* arg) {
 		}
 	}
 	else {
-		//断开连接
+#ifdef MSG_SEND_AUTO
+		// 断开连接
 		conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
+#endif
 	}
+#ifndef MSG_SEND_AUTO
+	// 断开连接
+	conn->m_evLoop->addTask(conn->m_channel, ElemType::DELETE);
+#endif
 	return 0;
 }
 
