@@ -6,6 +6,7 @@ ThreadPool::ThreadPool(EventLoop* mainLoop, int count)
 	: m_isStart(false)
 	, m_mainLoop(mainLoop)
 	, m_threadNum(count)
+	, m_index(0)
 {
 	m_workerThreads.clear();
 }
